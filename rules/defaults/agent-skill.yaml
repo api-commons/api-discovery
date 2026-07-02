@@ -1,0 +1,174 @@
+# Agent Skill ruleset — mirrors spotlight:skill in spotlight-cli
+# (packages/rulesets/src/skill). Governs SKILL.md agent skills: YAML frontmatter
+# metadata + markdown body structure. This file is the single source for BOTH the
+# rule catalog (spec site; functionOptions ignored there) AND in-browser linting in
+# the validator (functionOptions + custom functions used). Keep rule names + severity
+# in sync with the cli (tools/check-skill-sync.mjs guards it).
+rules:
+  skill-name:
+    description: A skill must declare a name in its frontmatter — it identifies the skill to agents and tooling.
+    message: A skill must declare a name.
+    given: $.frontmatter
+    severity: error
+    then:
+      field: name
+      function: truthy
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:governance
+      - experience:discoverability
+  skill-name-kebab-case:
+    description: Skill name should be lower kebab-case so it matches the skill directory name and stays portable.
+    message: Skill name should be lower kebab-case.
+    given: $.frontmatter.name
+    severity: warn
+    then:
+      function: pattern
+      functionOptions:
+        match: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:naming
+  skill-description:
+    description: A skill must declare a description — it is the primary signal an agent uses to decide when to invoke the skill.
+    message: A skill must declare a description.
+    given: $.frontmatter
+    severity: error
+    then:
+      field: description
+      function: truthy
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:discoverability
+  skill-description-length:
+    description: Skill descriptions should be specific enough to drive good selection — at least 40 characters of meaningful intent.
+    message: Skill description should be at least 40 characters.
+    given: $.frontmatter.description
+    severity: warn
+    then:
+      function: length
+      functionOptions:
+        min: 40
+        max: 1024
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:discoverability
+      - experience:usability
+  skill-license:
+    description: A skill should declare a license so consumers know the terms under which they can reuse and redistribute it.
+    message: A skill should declare a license.
+    given: $.frontmatter
+    severity: warn
+    then:
+      field: license
+      function: truthy
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:governance
+  skill-allowed-tools-array:
+    description: If a skill declares allowed-tools, it must be an array of tool names so its capability surface is explicit and auditable.
+    message: allowed-tools must be an array of tool names.
+    given: $.frontmatter['allowed-tools']
+    severity: warn
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          items:
+            type: string
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:security
+      - experience:governance
+  skill-version-semver:
+    description: If a skill declares a version, it should be semantic (e.g. 1.0.0) so consumers can reason about changes between releases.
+    message: Skill version should be semantic (e.g. 1.0.0).
+    given: $.frontmatter.version
+    severity: warn
+    then:
+      function: pattern
+      functionOptions:
+        match: ^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$
+    tags:
+      - format:agent-skill
+      - spec:frontmatter
+      - experience:versioning
+  skill-body-present:
+    description: A skill must have body content, not just frontmatter — the body is the instruction set the agent actually follows.
+    message: A skill must have body content.
+    given: $.words
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: integer
+          minimum: 1
+    tags:
+      - format:agent-skill
+      - spec:body
+      - experience:documentation
+      - experience:reliability
+  skill-has-usage-section:
+    description: A skill body should document how to use it under a Usage section, so both humans and agents can see how it is meant to be invoked.
+    message: Skill body should have a "Usage" section.
+    given: $
+    severity: warn
+    then:
+      function: headingPresent
+      functionOptions:
+        name: Usage
+    tags:
+      - format:agent-skill
+      - spec:body
+      - experience:documentation
+  skill-has-examples-section:
+    description: A skill body should show concrete examples under an Examples section so agents and humans can see how it is meant to be invoked.
+    message: Skill body should have an "Examples" section.
+    given: $
+    severity: info
+    then:
+      function: headingPresent
+      functionOptions:
+        name: Examples
+    tags:
+      - format:agent-skill
+      - spec:body
+      - experience:documentation
+  skill-single-title:
+    description: A skill body should have at most one level-1 heading — the frontmatter name is the title, and sections should use level-2 headings.
+    message: Skill body should have at most one level-1 heading.
+    given: $
+    severity: warn
+    then:
+      function: headingCount
+      functionOptions:
+        depth: 1
+        max: 1
+    tags:
+      - format:agent-skill
+      - spec:body
+      - experience:consistency
+  skill-body-length:
+    description: Skill bodies should stay focused — very long instructions degrade agent performance. Keep the body under ~5000 words.
+    message: Skill body is very long (over ~5000 words).
+    given: $.words
+    severity: info
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: integer
+          maximum: 5000
+    tags:
+      - format:agent-skill
+      - spec:body
+      - experience:usability
+      - experience:reliability

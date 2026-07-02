@@ -1,0 +1,5 @@
+# OpenAPI — extends the built-in Spotlight OpenAPI ruleset. The compiled
+# best-of-breed rules (format:openapi) are layered on top by the validator.
+extends:
+  - ["spotlight:oas", "recommended"]
+rules: {}

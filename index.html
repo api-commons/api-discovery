@@ -10,73 +10,116 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-YJEJYCXZH3');
     </script>
 
-    <title>API Discovery — API artifact registry</title>
-    <meta name="description" content="Search APIs.io and GitHub/GitLab/Bitbucket for API artifacts, keep provenance, save locally or commit/PR to git, and edit — in the browser." />
-    <link rel="icon" href="/favicon.png" type="image/png" />
+    <title>API Discovery — compose ephemeral API catalogs</title>
+    <meta name="description" content="Rapidly build APIs.json indexes and capability artifacts for any purpose — domain, team, category. Catalogs as ephemeral, regenerable views over your API estate, not a static central catalog. Runs entirely in your browser." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
         <strong>API Discovery</strong>
-        <span class="tag">discover.apicommons.org</span>
+        <span class="tag">ephemeral API catalogs</span>
       </div>
       <nav>
         <a href="https://apis.io" target="_blank" rel="noopener">APIs.io</a>
         <a href="https://apicommons.org" target="_blank" rel="noopener">API Commons</a>
         <a href="https://github.com/api-commons/api-discovery" target="_blank" rel="noopener">GitHub</a>
-        <button id="engage-ae" class="engage-btn" type="button" title="Work with API Evangelist on governance, artifacts, or consumption">Get help</button>
-        <button id="download-apisjson" class="dl-btn" type="button" title="Assemble all saved artifacts into an APIs.json (YAML) and download">Download as APIs.json</button>
+        <button id="engage-ae" class="engage-btn" type="button" title="Work with API Evangelist on discovery, governance, or artifacts">Get help</button>
+        <button id="download-federation" class="dl-btn" type="button" title="Download a federated APIs.json linking every catalog (the catalog-of-catalogs)">Catalog of catalogs</button>
       </nav>
     </header>
 
     <main class="layout">
+      <!-- LEFT: discover + inspect -->
       <section class="pane">
         <div class="toolbar">
           <select id="artifact-type" class="src-select" aria-label="Artifact type"></select>
-          <select id="source" class="src-select" aria-label="Search source" title="Where to search (toggle sources in Config)"></select>
+          <select id="source" class="src-select" aria-label="Search source" title="Where to search — sources appear when their key is set in Config"></select>
           <div class="search-wrap">
-            <input id="q" type="search" placeholder="Search artifacts…" autocomplete="off" />
-            <button id="search" title="Search">Search</button>
+            <input id="q" type="search" placeholder="Search for artifacts…" autocomplete="off" />
+            <button id="search" title="Search by keyword">Search</button>
             <div id="results" class="results" hidden></div>
           </div>
+          <button id="scan" class="scan-btn" type="button" title="Pull every artifact of this type from the selected source into the pool">Scan</button>
+          <label class="src-toggle file-btn" title="Upload HAR traffic captures — synthesized into evidence-based OpenAPI">
+            <input type="file" id="har-file" accept=".har,application/json" multiple hidden /> HAR
+          </label>
+          <label class="src-toggle file-btn" title="Import a helper bundle (from the API Reusability helper CLI) or a single spec">
+            <input type="file" id="import-file" accept=".json,.yaml,.yml,.md" hidden /> Import
+          </label>
           <div class="lang-toggle" role="group" aria-label="Editor format">
             <button id="lang-yaml" class="active" type="button">YAML</button>
             <button id="lang-json" type="button">JSON</button>
           </div>
         </div>
-        <div id="provenance" class="prov muted small">No artifact loaded — search a source or start typing.</div>
+        <div id="provenance" class="prov muted small">Nothing loaded — search a source, Scan, upload a HAR, or load an example set.</div>
         <div id="editor" class="editor"></div>
         <div class="savebar">
-          <input id="art-name" placeholder="artifact name" autocomplete="off" />
-          <button id="save-local" class="btn-accent" title="Save to this browser">Save locally</button>
-          <select id="repo-select" class="repo-select" title="Repo to commit / open a PR against (manage in the Repos tab)"></select>
-          <button id="commit" title="Commit to the selected GitHub repo">Commit ↗</button>
-          <button id="pr" title="Open a pull request on the selected GitHub repo">Open PR ↗</button>
+          <label class="field field-name"><span>Artifact name</span><input id="art-name" placeholder="e.g. Payments API" autocomplete="off" /></label>
+          <button id="save-pool" class="btn-accent" title="Save to the shared pool (linted on save)">Save to pool</button>
+          <select id="add-cat-select" title="Add the saved artifact to a catalog"></select>
+          <button id="add-cat-btn" type="button" title="Add to the selected catalog">Add to catalog</button>
           <span id="save-status" class="muted small"></span>
         </div>
+
+        <details class="meta-panel">
+          <summary>APIs.json properties</summary>
+          <div class="meta-body">
+            <p class="src-note">Attach the metadata that makes this artifact adoptable — documentation, sign-up, sandbox (operational) and Arazzo, MCP, agent skills (composable). Carried into every catalog export.</p>
+            <div class="meta-add">
+              <select id="prop-type" title="Property type"></select>
+              <input id="prop-url" type="url" placeholder="https://…" autocomplete="off" />
+              <button id="prop-add" class="btn-accent" type="button" title="Add this property">Add</button>
+            </div>
+            <div id="prop-chips" class="prop-chips"></div>
+          </div>
+        </details>
       </section>
 
+      <!-- RIGHT: catalogs / pool / repos / about / config -->
       <section class="pane">
         <div class="tabs">
-          <button class="tab active" data-tab="saved" type="button">Saved <span class="badge" id="saved-count">0</span></button>
+          <button class="tab active" data-tab="catalogs" type="button">Catalogs <span class="badge" id="cat-count">0</span></button>
+          <button class="tab" data-tab="pool" type="button">Pool <span class="badge" id="pool-count">0</span></button>
           <button class="tab" data-tab="repos" type="button">Repos <span class="badge" id="repos-count">0</span></button>
+          <button class="tab" data-tab="about" type="button">About</button>
           <button class="tab" data-tab="config" type="button">Config</button>
         </div>
-        <div class="tab-panel" id="tab-saved">
-          <div class="filterbar"><input id="filter" type="search" placeholder="Filter saved artifacts…" autocomplete="off" /></div>
-          <div class="repos-add saved-git-bar">
-            <span class="muted small">Commit / PR to</span>
-            <select id="saved-repo-select" title="Target repo — manage the list in the Repos tab"></select>
-            <span id="saved-git-status" class="muted small"></span>
+
+        <!-- Catalogs -->
+        <div class="tab-panel" id="tab-catalogs">
+          <div class="samples-bar">
+            <span class="set-label">Load example APIs ▾</span>
+            <select id="sample-set" title="Example sets — synthetic demo, or real provider APIs (served by the API Reusability project)"></select>
+            <button id="add-set" class="btn-accent" type="button" title="Load the set into the pool and create a catalog for it">Add set</button>
+            <button id="clear-samples" type="button" title="Remove example artifacts (your own stay)">Clear</button>
+            <span class="muted small" id="samples-note"></span>
           </div>
-          <ul id="saved-list" class="store-list"></ul>
+          <div class="compose-bar">
+            <input id="compose-intent" placeholder="Compose a catalog by purpose — e.g. “everything payments”" autocomplete="off" />
+            <button id="compose-btn" class="btn-accent" type="button" title="Semantic-match the pool and compose a new catalog (recipe recorded)">🧠 Compose</button>
+            <input id="new-cat-name" class="grp-wide" placeholder="…or a name" autocomplete="off" />
+            <button id="new-cat-btn" type="button" title="Create an empty catalog">New</button>
+          </div>
+          <div id="catalogs-body" class="report-body"></div>
         </div>
+
+        <!-- Pool -->
+        <div class="tab-panel" id="tab-pool" hidden>
+          <div class="filterbar">
+            <input id="pool-filter" type="search" placeholder="Filter the pool…" autocomplete="off" />
+            <button id="pool-clear" type="button" title="Clear">✕</button>
+          </div>
+          <p class="notice">The <strong>pool</strong> is everything you've discovered — the estate. Catalogs are views over it: the same artifact can live in many catalogs, and deleting a catalog never deletes an artifact.</p>
+          <ul id="pool-list" class="store-list"></ul>
+        </div>
+
+        <!-- Repos -->
         <div class="tab-panel" id="tab-repos" hidden>
-          <p class="notice">Add the GitHub repos you work with — stored in this browser and offered wherever you commit or open a PR. Needs a GitHub token (Config).</p>
+          <p class="notice">Add the GitHub repos you publish catalogs to — stored in this browser and offered wherever you commit or open a PR. Needs a GitHub token (Config).</p>
           <div class="repos-add">
             <select id="repo-picker" aria-label="Accessible repositories"></select>
             <button id="repo-refresh" type="button" title="Reload your repos from GitHub">↻</button>
@@ -84,38 +127,55 @@
           </div>
           <ul id="repos-list" class="store-list"></ul>
         </div>
+
+        <!-- About -->
+        <div class="tab-panel" id="tab-about" hidden>
+          <div id="about-body" class="report-body"></div>
+        </div>
+
+        <!-- Config -->
         <div class="tab-panel" id="tab-config" hidden>
-          <p class="notice">Tokens are stored <strong>only in this browser's local storage</strong> (cleared with your cache). They're used directly from your browser to the provider APIs — nothing passes through a server.</p>
+          <p class="notice">Keys are stored <strong>only in this browser's local storage</strong> and used directly from your browser to the provider APIs — nothing passes through a server.</p>
           <div class="config-scroll">
             <details class="cfg-group" open>
               <summary>Search sources</summary>
               <div class="cfg-fields">
-                <p class="src-note">Which sources Search looks in. APIs.io &amp; GitHub are on by default; GitLab &amp; Bitbucket need their tokens below.</p>
-                <label class="src-toggle"><input type="checkbox" id="src-apis.io" checked disabled> APIs.io <span class="src-hint">(always on)</span></label>
-                <label class="src-toggle"><input type="checkbox" id="src-github" checked> GitHub</label>
-                <label class="src-toggle"><input type="checkbox" id="src-gitlab"> GitLab</label>
-                <label class="src-toggle"><input type="checkbox" id="src-bitbucket"> Bitbucket</label>
+                <p class="src-note">A source appears in the top dropdown as soon as its key is set. APIs.io is always available. <strong>Search</strong> by keyword or <strong>Scan</strong> to sweep.</p>
+                <div id="source-status" class="source-status"></div>
               </div>
             </details>
             <details class="cfg-group" open>
               <summary>GitHub</summary>
               <div class="cfg-fields">
                 <label><span>Personal access token <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">create ↗</a></span><input type="password" id="cfg-gh-token" autocomplete="off" placeholder="ghp_…"></label>
-                <label><span>Default repo (owner/repo)</span><input type="text" id="cfg-gh-repo" autocomplete="off" placeholder="my-org/api-specs"></label>
+                <label><span>Default repo (owner/repo)</span><input type="text" id="cfg-gh-repo" autocomplete="off" placeholder="my-org/api-catalogs"></label>
                 <label><span>Default branch</span><input type="text" id="cfg-gh-branch" autocomplete="off" placeholder="main"></label>
               </div>
             </details>
             <details class="cfg-group">
               <summary>GitLab</summary>
               <div class="cfg-fields">
-                <label><span>Token <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank" rel="noopener">create ↗</a></span><input type="password" id="cfg-gl-token" autocomplete="off" placeholder="glpat-…"></label>
+                <label><span>Token</span><input type="password" id="cfg-gl-token" autocomplete="off" placeholder="glpat-…"></label>
               </div>
             </details>
             <details class="cfg-group">
               <summary>Bitbucket</summary>
               <div class="cfg-fields">
                 <label><span>Username</span><input type="text" id="cfg-bb-user" autocomplete="off"></label>
-                <label><span>App password <a href="https://bitbucket.org/account/settings/app-passwords/" target="_blank" rel="noopener">create ↗</a></span><input type="password" id="cfg-bb-token" autocomplete="off"></label>
+                <label><span>App password</span><input type="password" id="cfg-bb-token" autocomplete="off"></label>
+              </div>
+            </details>
+            <details class="cfg-group">
+              <summary>Catalogs &amp; registries</summary>
+              <div class="cfg-fields">
+                <label><span>SwaggerHub token <span class="src-hint">(adds SwaggerHub to Search/Scan)</span></span><input type="password" id="cfg-swaggerhub-token" autocomplete="off"></label>
+                <label><span>Postman API key <span class="src-hint">(adds Postman to Search/Scan)</span></span><input type="password" id="cfg-postman-key" autocomplete="off" placeholder="PMAK-…"></label>
+              </div>
+            </details>
+            <details class="cfg-group">
+              <summary>Federation</summary>
+              <div class="cfg-fields">
+                <label><span>Base URL for published catalogs <span class="src-hint">(used in the catalog-of-catalogs includes)</span></span><input type="text" id="cfg-fed-base" autocomplete="off" placeholder="https://raw.githubusercontent.com/my-org/api-catalogs/main"></label>
               </div>
             </details>
             <label class="cfg-show"><input type="checkbox" id="cfg-show"> Show values</label>
@@ -123,6 +183,14 @@
         </div>
       </section>
     </main>
+
+    <footer class="footer">
+      <a href="https://apis.io">APIs.io</a>
+      <a href="https://apicommons.org">API Commons</a>
+      <a href="https://reusability.apicommons.org">API Reusability</a>
+      <a href="https://validator.spotlight-rules.com">Spotlight Validator</a>
+      <a href="https://github.com/api-commons/api-discovery/issues">GitHub Issues</a>
+    </footer>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
