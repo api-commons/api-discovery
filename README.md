@@ -11,7 +11,7 @@ discovered artifacts. Regenerate them from their recipes, let them go stale, thr
 them away, make new ones. Federate them with a catalog-of-catalogs instead of
 centralizing them.
 
-Live at **[discover.apicommons.org](https://discover.apicommons.org)**. Runs
+Live at **[discovery.apicommons.org](https://discovery.apicommons.org)**. Runs
 entirely in your browser — no backend, keys stay in `localStorage`. Part of the
 [API Commons](https://apicommons.org) tools, alongside
 [API Reusability](https://reusability.apicommons.org) (which judges how reusable

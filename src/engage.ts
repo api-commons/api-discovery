@@ -63,7 +63,7 @@ const SERVICES: Service[] = [
 ];
 
 function mailto(s: Service, ctx: string): string {
-  const body = `${s.body(ctx)}\n\n— sent from ${APP} (discover.apicommons.org)`;
+  const body = `${s.body(ctx)}\n\n— sent from ${APP} (discovery.apicommons.org)`;
   return `mailto:${EMAIL}?subject=${encodeURIComponent(s.subject)}&body=${encodeURIComponent(body)}`;
 }
 
