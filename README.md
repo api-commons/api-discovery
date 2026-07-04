@@ -16,7 +16,7 @@ entirely in your browser — no backend, keys stay in `localStorage`. Part of th
 [API Commons](https://apicommons.org) tools, alongside
 [API Reusability](https://reusability.apicommons.org) (which judges how reusable
 your APIs are — this tool composes them) and
-[Spotlight Validator](https://validator.spotlight-rules.com) (deep linting).
+[API Validator](https://validator.apicommons.org) (deep linting).
 
 ## What it does
 
@@ -33,7 +33,7 @@ your APIs are — this tool composes them) and
 3. **Regenerate** — every composed catalog carries its **recipe** (`x-recipe` in
    the export) and can be rebuilt against live sources anytime. Freshness badges
    are first-class: a catalog is a build artifact, not a database.
-4. **Validate on index** — every artifact is linted on entry (Spotlight engine,
+4. **Validate on index** — every artifact is linted on entry (Spectral engine,
    in-browser, per-type default rulesets) and stamped ✓/⚠/✗; catalogs roll the
    stamps up, so trust travels with the catalog.
 5. **Capabilities** — inside any catalog, cluster members into named business
@@ -59,5 +59,5 @@ npm run build    # -> dist/ (what GitHub Pages serves)
 ```
 
 Deploys to GitHub Pages via `.github/workflows/pages.yml` on push to `main`.
-The Spotlight lint engine and the embedding model load lazily — the initial
+The Spectral lint engine and the embedding model load lazily — the initial
 bundle stays the usual Monaco-sized payload.
