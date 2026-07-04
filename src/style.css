@@ -303,7 +303,7 @@ ul.conso li { overflow-wrap: anywhere; }
 .quad.q-info { border-left-color: #3794ff; }
 .quad.q-bad { border-left-color: #f14c4c; }
 
-/* ---- API Discovery: catalogs, freshness, lint stamps ------------------------ */
+/* ---- API Discovery: catalogs, freshness ------------------------------------ */
 .compose-bar { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); background: #1f1f1f; flex-wrap: wrap; }
 .compose-bar input { flex: 1 1 12rem; min-width: 8rem; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 5px; padding: 6px 9px; font-size: 0.85rem; }
 .compose-bar input:focus { outline: none; border-color: var(--accent); }
@@ -317,13 +317,6 @@ ul.conso li { overflow-wrap: anywhere; }
 .fresh-badge.fresh { background: #12351c; color: #3fb950; }
 .fresh-badge.aging { background: #33290e; color: #ffc107; }
 .fresh-badge.stale { background: #3a1414; color: #f14c4c; }
-.lint-roll { margin-left: auto; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
-
-.lint-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 20px; padding: 0 5px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; flex: 0 0 auto; }
-.lint-chip.pass { background: #12351c; color: #3fb950; }
-.lint-chip.warn { background: #33290e; color: #ffc107; }
-.lint-chip.fail { background: #3a1414; color: #f14c4c; }
-.lint-chip.pending { background: #2d2d30; color: var(--muted); }
 
 .cat-actions button { font-size: 0.78rem; }
 .cat-card .cap-head { flex-wrap: wrap; }

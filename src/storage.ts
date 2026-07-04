@@ -75,17 +75,9 @@ export interface Capability {
   createdAt: number;
 }
 
-// Cached lint verdict per artifact content (validate-on-index, incremental).
-export interface LintStamp {
-  errors: number;
-  warnings: number;
-  at: number;
-}
-
 const DOCS = 'api-discovery:artifacts';
 const CATS = 'api-discovery:catalogs';
 const CAPS = 'api-discovery:capabilities';
-const LINT = 'api-discovery:lint';
 const CFG = 'api-discovery:config';
 const SEEDED = 'api-discovery:seeded';
 
@@ -180,10 +172,6 @@ export function upsertCapability(c: Capability) {
 export const removeCapability = (id: string) => saveCapabilities(loadCapabilities().filter((c) => c.id !== id));
 export const getCapability = (id: string) => loadCapabilities().find((c) => c.id === id);
 export const capabilitiesForCatalog = (catalogId: string) => loadCapabilities().filter((c) => c.catalogId === catalogId);
-
-// ---- lint cache -----------------------------------------------------------------
-export const loadLintCache = (): Record<string, LintStamp> => read<Record<string, LintStamp>>(LINT, {});
-export const saveLintCache = (m: Record<string, LintStamp>) => write(LINT, m);
 
 // ---- config --------------------------------------------------------------------
 export const loadConfig = (): Config => read<Config>(CFG, {});

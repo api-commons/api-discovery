@@ -79,7 +79,6 @@ export function buildCatalogApisJson(catalog: Catalog, pool: SavedArtifact[]): s
   // The recipe — how this catalog was composed, so it can be regenerated.
   if (catalog.recipe?.steps?.length) doc['x-recipe'] = catalog.recipe;
 
-  doc.rules = [{ type: 'SpectralRules', name: 'API Commons Rulesets', url: 'https://apicommons.org/rulesets/' }];
   return stringify(doc);
 }
 

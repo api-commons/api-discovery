@@ -1,4 +1,4 @@
-// Artifact types — shared vocabulary with spotlight-validator. Each maps to an
+// Artifact types — the discovery vocabulary. Each maps to an
 // APIs.io endpoint (and a GitHub search qualifier lives in sources.ts by id).
 export interface ArtifactType { id: string; label: string; endpoint: string; format: string; searchNote?: string }
 export const ARTIFACTS: ArtifactType[] = [

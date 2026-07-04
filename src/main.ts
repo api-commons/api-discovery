@@ -18,7 +18,6 @@ import { buildCatalogApisJson, detectFormat } from './apisjson-index';
 import { buildCatalogOfCatalogs, catalogFileName } from './federation';
 import { ageLabel, provKey, regenerateCatalog } from './catalogs';
 import { suggestName } from './capabilities';
-import { enqueueLint, stampFor, rollupStamps } from './lint-index';
 import { embed, cosine, buildApiText } from './semantic';
 import { parseHar } from './har';
 import { PRESET_SETS, loadPresetSet } from './presets';
@@ -49,16 +48,6 @@ function downloadFile(name: string, text: string, mime = 'application/yaml') {
 }
 const status = (t: string, ok = true) => { const el = $('#save-status'); el.textContent = t; el.style.color = ok ? 'var(--muted)' : '#f14c4c'; };
 const membersOf = (c: Catalog): SavedArtifact[] => c.artifactIds.map((id) => getArtifact(id)).filter(Boolean) as SavedArtifact[];
-const lintChip = (a: SavedArtifact): string => {
-  const s = stampFor(a);
-  if (!s) return '<span class="lint-chip pending" title="lint pending">…</span>';
-  if (s.errors) return `<span class="lint-chip fail" title="${s.errors} error(s), ${s.warnings} warning(s)">✗ ${s.errors}</span>`;
-  if (s.warnings) return `<span class="lint-chip warn" title="${s.warnings} warning(s)">⚠ ${s.warnings}</span>`;
-  return '<span class="lint-chip pass" title="no findings">✓</span>';
-};
-// debounce re-render as background lint stamps land
-let lintT: number | undefined;
-const onLintProgress = () => { clearTimeout(lintT); lintT = window.setTimeout(() => { renderCatalogs(); renderPool(); }, 400); };
 
 // ---- editor / provenance --------------------------------------------------------
 function setContent(text: string) {
@@ -200,7 +189,6 @@ async function runScan() {
       added++;
     } catch { failed++; }
   }
-  enqueueLint(loadArtifacts(), onLintProgress);
   renderPool(); renderCatalogs(); hideResults(); switchTab('pool');
   status(`Scanned ${srcLabel}: added ${added}${skipped ? ` · skipped ${skipped} already pooled` : ''}${failed ? ` · ${failed} failed` : ''}. Compose a catalog from them →`);
 }
@@ -224,7 +212,6 @@ $<HTMLInputElement>('#har-file').addEventListener('change', async (e) => {
     } catch (err) { errs.push(`${f.name}: ${err instanceof Error ? err.message : String(err)}`); }
   }
   (e.target as HTMLInputElement).value = '';
-  enqueueLint(loadArtifacts(), onLintProgress);
   renderPool(); switchTab('pool');
   status(`HAR → OpenAPI: added ${added} to the pool${errs.length ? ` · ${errs.length} error(s)` : ''}`, !errs.length);
 });
@@ -249,7 +236,6 @@ $<HTMLInputElement>('#import-file').addEventListener('change', async (e) => {
       });
       n++;
     }
-    enqueueLint(loadArtifacts(), onLintProgress);
     renderPool(); switchTab('pool');
     status(`Imported ${n} artifact${n === 1 ? '' : 's'} into the pool.`);
     return;
@@ -315,7 +301,6 @@ $('#save-pool').addEventListener('click', () => {
     : { id: newId(), name, format: detectFormat(content), lang, content, properties: [...editorProperties], provenance, savedAt: Date.now() };
   activeId = rec.id;
   upsertArtifact(rec);
-  enqueueLint([rec], onLintProgress);
   renderPool(); renderCatalogs();
   status('Saved to pool ✓');
 });
@@ -367,7 +352,6 @@ async function seedSet(setId: string) {
     created++;
   }
   markSeeded();
-  enqueueLint(loadArtifacts(), onLintProgress);
   populateCatalogSelect(); renderCatalogs(); renderPool(); updateSamplesBar();
   status(`Loaded ${allIds.length} artifact${allIds.length === 1 ? '' : 's'} → ${created} catalog${created === 1 ? '' : 's'} created.`);
 }
@@ -443,14 +427,12 @@ function renderCatalogs() {
   body.innerHTML = cats.map((c) => {
     const members = membersOf(c);
     const fresh = ageLabel(c.modifiedAt);
-    const roll = rollupStamps(members);
     return `<div class="cap-card cat-card" data-id="${c.id}">
       <div class="cap-head">
         <span class="cap-name">${esc(c.name)}</span>
         ${scopeChips(c)}
         <span class="cap-badge">${members.length} API${members.length === 1 ? '' : 's'}</span>
         <span class="fresh-badge ${fresh.cls}" title="last composed/regenerated">${fresh.label}</span>
-        <span class="lint-roll" title="lint: pass / warn / fail${roll.pending ? ` (${roll.pending} pending)` : ''}">✓${roll.pass} ⚠${roll.warn} ✗${roll.fail}</span>
       </div>
       <div class="cap-assign cat-actions">
         <button class="cat-open btn-accent" type="button">Open</button>
@@ -487,7 +469,6 @@ async function regen(id: string) {
   status(`Regenerating “${c.name}”…`);
   try {
     const r = await regenerateCatalog(c, gitTokens(), (m) => status(m));
-    enqueueLint(loadArtifacts(), onLintProgress);
     renderCatalogs(); renderPool();
     status(`Regenerated “${c.name}”: +${r.added} new, ${r.attached} attached, ${r.kept} kept${r.failed ? `, ${r.failed} failed` : ''}.`);
   } catch (e) { status(`Regenerate failed: ${e instanceof Error ? e.message : String(e)}`, false); }
@@ -521,7 +502,6 @@ function renderCatalogDetail(body: HTMLElement) {
     <h3>Members (${members.length})</h3>
     <ul class="cap-members">
       ${members.map((m) => `<li data-api="${m.id}">
-        ${lintChip(m)}
         <span class="store-name">${esc(m.name)}</span>
         <span class="muted small">${esc(m.format || '')}</span>
         <button class="mem-load cap-canon" type="button" title="Open in the editor">open</button>
@@ -686,7 +666,6 @@ function renderPool() {
     ? shown.map((a) => {
         const memberOf = inCats(a.id);
         return `<li class="${a.id === activeId ? 'active' : ''}" data-id="${a.id}">
-          ${lintChip(a)}
           <span class="store-name" title="${esc(a.name)}">${esc(a.name)}</span>
           <span class="store-meta">${esc(a.format || '')} · ${esc(a.provenance.source)}${memberOf.length ? ` · in ${memberOf.map(esc).join(', ')}` : ' · in no catalog'}</span>
           <button class="store-btn" type="button">Load</button>
@@ -761,7 +740,6 @@ function renderAbout() {
       <li><strong>Discover</strong> into the <strong>pool</strong> — search or Scan APIs.io, GitHub/GitLab/Bitbucket, SwaggerHub, Postman (sources appear as you add keys); upload HAR traffic captures; or Import a bundle from the <a href="https://github.com/api-commons/api-reusability/tree/main/helper" target="_blank" rel="noopener">enterprise helper CLI</a> (Backstage, gateways, Kubernetes, Kafka…).</li>
       <li><strong>Compose catalogs</strong> — named, purpose-scoped views over the pool: per team, per domain, per project, per agent. Type an intent (<em>“everything payments”</em>) and <strong>🧠 Compose</strong> semantic-matches the pool into a catalog. The same API can live in many catalogs; deleting a catalog deletes nothing.</li>
       <li><strong>Regenerate</strong> — every composed catalog carries its <strong>recipe</strong> (the queries that built it) and can be rebuilt against live sources anytime. Freshness is displayed, not hidden: a catalog is a build artifact, not a database.</li>
-      <li><strong>Trust travels with the catalog</strong> — every artifact is linted on entry (Spotlight engine, in-browser) and stamped ✓/⚠/✗; catalogs roll the stamps up. Deep rule editing lives in <a href="https://validator.spotlight-rules.com" target="_blank" rel="noopener">Spotlight Validator</a>.</li>
       <li><strong>Capabilities</strong> — inside any catalog, cluster members into named business capabilities (🧠 Suggest), pick canonicals, and ship the capability map in the export.</li>
       <li><strong>Publish &amp; federate</strong> — download any catalog as APIs.json (YAML), commit/PR it to a repo, and export a <strong>catalog of catalogs</strong>: a lightweight APIs.json <code>includes</code> index linking all your purpose-built catalogs — federation instead of centralization.</li>
     </ol>
@@ -769,7 +747,7 @@ function renderAbout() {
     <h3>Getting started</h3>
     <p>Load the <strong>demo org</strong> set (25 synthetic APIs — it creates two org catalogs from one pool immediately) or any of the <strong>50+ real provider sets</strong> (Stripe, Twilio, GitHub, Claude… served by the <a href="https://reusability.apicommons.org" target="_blank" rel="noopener">API Reusability</a> project). Then 🧠 Compose a catalog by intent and watch the same artifacts appear in multiple views.</p>
 
-    <p class="src-note">Part of the <a href="https://apicommons.org" target="_blank" rel="noopener">API Commons</a> family: <a href="https://reusability.apicommons.org" target="_blank" rel="noopener">API Reusability</a> judges how reusable your APIs are; API Discovery composes them into catalogs; <a href="https://validator.spotlight-rules.com" target="_blank" rel="noopener">Spotlight Validator</a> lints them deeply. Everything runs in your browser — no backend, keys stay local.</p>
+    <p class="src-note">Part of the <a href="https://apicommons.org" target="_blank" rel="noopener">API Commons</a> family: <a href="https://reusability.apicommons.org" target="_blank" rel="noopener">API Reusability</a> judges how reusable your APIs are; API Discovery composes them into catalogs; <a href="https://validator.apicommons.org" target="_blank" rel="noopener">API Validator</a> lints them deeply. Everything runs in your browser — no backend, keys stay local.</p>
   `;
 }
 
@@ -825,7 +803,6 @@ if (loadArtifacts().length === 0 && !wasSeeded()) {
   seedSet('sample'); // async — renders when done
 } else {
   renderCatalogs(); renderPool();
-  enqueueLint(loadArtifacts(), onLintProgress);
 }
 populateCatalogSelect();
 updateSamplesBar();

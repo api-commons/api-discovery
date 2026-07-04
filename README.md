@@ -33,15 +33,15 @@ your APIs are — this tool composes them) and
 3. **Regenerate** — every composed catalog carries its **recipe** (`x-recipe` in
    the export) and can be rebuilt against live sources anytime. Freshness badges
    are first-class: a catalog is a build artifact, not a database.
-4. **Validate on index** — every artifact is linted on entry (Spectral engine,
-   in-browser, per-type default rulesets) and stamped ✓/⚠/✗; catalogs roll the
-   stamps up, so trust travels with the catalog.
-5. **Capabilities** — inside any catalog, cluster members into named business
+4. **Capabilities** — inside any catalog, cluster members into named business
    capabilities (**🧠 Suggest**), pick canonicals, and ship the capability map as
    `x-capabilities` in the export.
-6. **Publish & federate** — download any catalog as APIs.json (YAML), commit/PR it
+5. **Publish & federate** — download any catalog as APIs.json (YAML), commit/PR it
    to a repo, and export a **catalog of catalogs**: an APIs.json `includes` index
    linking every purpose-built catalog.
+
+Discovery stops at cataloging — governance and deep linting live in the separate
+[API Validator](https://validator.apicommons.org).
 
 ## Getting started
 
@@ -59,5 +59,5 @@ npm run build    # -> dist/ (what GitHub Pages serves)
 ```
 
 Deploys to GitHub Pages via `.github/workflows/pages.yml` on push to `main`.
-The Spectral lint engine and the embedding model load lazily — the initial
-bundle stays the usual Monaco-sized payload.
+The embedding model loads lazily — the initial bundle stays the usual
+Monaco-sized payload.

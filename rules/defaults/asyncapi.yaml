@@ -1,4 +1,0 @@
-# AsyncAPI — extends the built-in Spotlight AsyncAPI ruleset.
-extends:
-  - ["spotlight:asyncapi", "recommended"]
-rules: {}

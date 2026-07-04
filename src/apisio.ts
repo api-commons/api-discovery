@@ -1,6 +1,4 @@
-// APIs.io API client. The Spotlight Validator is a first-class internal consumer
-// of the apis.io API (origin-elevated to the internal tier by the API authorizer).
-// Read-only; no key needed.
+// APIs.io API client. Read-only; no key needed.
 const BASE = 'https://apis.io/api/v1';
 
 export interface SearchHit {

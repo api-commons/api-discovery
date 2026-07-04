@@ -1,4 +1,0 @@
-# Arazzo — extends the built-in Spotlight Arazzo ruleset.
-extends:
-  - ["spotlight:arazzo", "recommended"]
-rules: {}
