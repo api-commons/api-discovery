@@ -12,11 +12,7 @@ them away, make new ones. Federate them with a catalog-of-catalogs instead of
 centralizing them.
 
 Live at **[discovery.apicommons.org](https://discovery.apicommons.org)**. Runs
-entirely in your browser — no backend, keys stay in `localStorage`. Part of the
-[API Commons](https://apicommons.org) tools, alongside
-[API Reusability](https://reusability.apicommons.org) (which judges how reusable
-your APIs are — this tool composes them) and
-[API Validator](https://validator.apicommons.org) (deep linting).
+entirely in your browser — no backend, keys stay in `localStorage`.
 
 ## What it does
 
@@ -61,3 +57,14 @@ npm run build    # -> dist/ (what GitHub Pages serves)
 Deploys to GitHub Pages via `.github/workflows/pages.yml` on push to `main`.
 The embedding model loads lazily — the initial bundle stays the usual
 Monaco-sized payload.
+
+## Part of API Commons
+
+An open, browser-first tool from **[API Commons](https://apicommons.org)** — free, no backend, your data stays in your browser. Browse the full set at **[apicommons.org/tools](https://apicommons.org/tools/)**.
+
+**Related tools**
+- [API Reusability](https://reusability.apicommons.org) — judges how reusable your APIs are; this tool composes them
+- [API Documentation](https://documentation.apicommons.org) — portable HTML docs for any APIs.json
+- [API Experience](https://experience.apicommons.org) — DX/AX layer + coverage scorecard
+- [API Validator](https://validator.apicommons.org) — lint OpenAPI/AsyncAPI/Arazzo/JSON Schema in-browser
+- [MCP Install](https://install.apicommons.org) — universal install button for MCP servers
