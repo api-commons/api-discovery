@@ -68,3 +68,10 @@ An open, browser-first tool from **[API Commons](https://apicommons.org)** — f
 - [API Experience](https://experience.apicommons.org) — DX/AX layer + coverage scorecard
 - [API Validator](https://validator.apicommons.org) — lint OpenAPI/AsyncAPI/Arazzo/JSON Schema in-browser
 - [MCP Install](https://install.apicommons.org) — universal install button for MCP servers
+
+## License
+
+**[Apache-2.0](LICENSE).**
+
+API Commons licenses **code** under Apache-2.0 and **artifacts** — schemas, rulesets,
+examples and API descriptions — under CC BY-NC-SA 4.0.
